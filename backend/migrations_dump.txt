@@ -1,0 +1,8 @@
+
+> glee2@1.0.0 premigrations
+> npm run build
+
+
+> glee2@1.0.0 build
+> tsc
+
