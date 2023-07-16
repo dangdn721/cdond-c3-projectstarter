@@ -337,7 +337,7 @@ jobs:
                     --tags project=udapeople
             
       - destroy-environment
-      - revert-migrations 
+      - revert-migrations
 
  cleanup:
     docker:
