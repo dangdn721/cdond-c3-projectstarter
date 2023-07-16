@@ -293,21 +293,14 @@ jobs:
       - run:
           name: Smoke test backend
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:project,Values=udapeople" \
-              --output text)
-            export API_URL="http://${BACKEND_IP}:3030"
-            echo "${API_URL}"
-            
-            if curl -v ${API_URL}/api/status | grep "ok"
-            then
-                echo "Backend smoke test succeeded"
-                exit 0
-            else
-                echo "Failed Backend smoke test"
-                exit 1
-            fi
+              export API_URL="http://${BACKEND_IP}:3030"
+              echo "${API_URL}"
+              if curl "${API_URL}/api/status" | grep "ok"
+              then
+                return 0
+              else
+                return 1
+              fi
       - run:
           name: Frontend smoke test.
           command: |
@@ -315,9 +308,11 @@ jobs:
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
-              exit 0
+              # Change this to 0 after the job fails
+              return 1
             else
-              exit 1
+              return 1
+            fi
             fi
       - destroy-environment
       - revert-migrations 
@@ -335,11 +330,10 @@ jobs:
                     --stack-name InitialStack \
                     --parameter-overrides WorkflowID="udapeople-${CIRCLE_WORKFLOW_ID:0:7}" \
                     --tags project=udapeople
-            
       - destroy-environment
       - revert-migrations
 
- cleanup:
+  cleanup:
     docker:
       - image: amazon/aws-cli
     steps:
