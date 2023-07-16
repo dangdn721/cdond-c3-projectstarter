@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  slack: circleci/slack@3.4.2
-
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -18,30 +15,12 @@ commands:
             aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
             aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.Workflow_ID >>
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.Workflow_ID >>
-  write-envvars-file:
-    description: Command used for creating env file
-    steps:
-      - run:
-          name: Add env vars to env file
-          command: |
-            echo "NODE_ENV=production" >> backend/.env
-            echo "VERSION=1" >> backend/.env
-            echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
-            echo "TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}" >> backend/.env
-            echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
-            echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
-            echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
-            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
-            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
-            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
-            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env 
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     steps:
       - restore_cache:
           keys: [backend-build]
-      - write-envvars-file
       - run:
           name: Revert migrations
           when: on_fail
@@ -211,7 +190,6 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]
-      - write-envvars-file
       - run:
           name: Run migrations
           command: |
@@ -270,39 +248,50 @@ jobs:
       - image: python:3.7-alpine3.11
     steps:
       - checkout
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update tar gzip ansible nodejs npm curl
-            apk add --no-cache openssh-client
-            apk add --no-cache --upgrade bash
-            pip install awscli
       - add_ssh_keys:
           fingerprints: ["62:1a:2b:f9:a8:ed:51:51:c7:79:a9:54:94:18:97:dc"] 
       - attach_workspace:
           at: ~/
+
       - run:
           name: Install dependencies
           command: |
-            apk add --update tar gzip ansible nodejs npm
+            apk add --update ansible
+            ansible-galaxy install weareinteractive.environment
+            apk add tar gzip
+            apk add zip unzip 
+            apk add curl
+            apk add gzip
+            apk add nodejs
+            apk add npm
             pip install awscli
-      - write-envvars-file
+      - run: cat   .circleci/ansible/inventory.txt
       - run:
-          name: Configure server
+          name: Deploy
           command: |
+            cd backend
+            cat .env
+            npm i 
+            npm run build
+            ls dist
+            tar -czvf dist.tar.gz dist
+            mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
+            mv dist.tar.gz  ~/project/.circleci/ansible/roles/deploy/files/
+            cp -f ~/project/backend/package.json  ~/project/.circleci/ansible/roles/deploy/files/
+      - run:
+          name: Deploy backend
+          command: |
+            ls ~/project/.circleci/ansible/roles/deploy/files/
             cd .circleci/ansible
-            ansible-playbook -i inventory.txt main.yml
+            ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment
       - revert-migrations
-      - slack/status:
-          fail_only: true
 
   smoke-test:
     docker:
       - image: python:3.7-alpine3.11
     steps:
       - checkout
-      - write-envvars-file
       - attach_workspace:
           at: ~/
       - run:
