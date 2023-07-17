@@ -1,5 +1,5 @@
 URL01 = https://github.com/dangdn721/cdond-c3-projectstarter
-URL02 = http://udapeople-b6c3210.s3-website-us-east-1.amazonaws.com/
-URL03 = 
-URL04_1 = 
-URL04_2 = 
+URL02 = http://udapeople-393ffce.s3-website-us-east-1.amazonaws.com/
+URL03 = d1w6cz5vzg45i7.cloudfront.net
+URL04_1 = http://ec2-3-89-195-145.compute-1.amazonaws.com:3030/api/status
+URL04_2 = http://ec2-54-175-187-139.compute-1.amazonaws.com:9090
