@@ -164,17 +164,20 @@ jobs:
 
   configure-infrastructure:
     docker:
-      - image: python:3.9.16-alpine3.17
+      - image: cimg/base:stable
     steps:
       - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt update
+            sudo apt install software-properties-common -y
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible -y
       - add_ssh_keys:
           fingerprints: ["c6:0f:b2:3a:36:74:f0:19:f6:79:9d:db:61:31:7b:da:bd:30:83:87"]
       - attach_workspace:
           at: ~/
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update tar gzip ansible 
       - run:
           name: Configure server
           command: |
@@ -252,26 +255,30 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/base:stable
     steps:
       - checkout
+      - run:
+          name: Install Package
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+            sudo apt update
+            sudo apt install software-properties-common -y
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible -y
+            curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+            sudo apt install -y nodejs
       - add_ssh_keys:
           fingerprints: ["c6:0f:b2:3a:36:74:f0:19:f6:79:9d:db:61:31:7b:da:bd:30:83:87"]
       - attach_workspace:
           at: ~/
-
+      - restore_cache:
+          keys: [backend-dependencies]
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible
-            ansible-galaxy install weareinteractive.environment
-            apk add tar gzip
-            apk add zip unzip 
-            apk add curl
-            apk add gzip
-            apk add nodejs
-            apk add npm
-            pip install awscli
             cd backend
             npm install
       - run:
