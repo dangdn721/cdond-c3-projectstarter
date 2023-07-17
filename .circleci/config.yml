@@ -181,11 +181,11 @@ jobs:
 
             cd .circleci/ansible
                          
-            cd .ssh
-            eval `ssh-agent`
-            chmod 400 keyp3.pem
-            ssh-add keyp3.pem 
-            cd ..            
+            # cd .ssh
+            # eval `ssh-agent`
+            # chmod 400 keyp3.pem
+            # ssh-add keyp3.pem 
+            # cd ..            
 
             cat inventory.txt                                        
             ansible-playbook -i inventory.txt -u ubuntu --private-key .ssh/keyp3.pem configure-server.yml
@@ -290,11 +290,11 @@ jobs:
             export TYPEORM_MIGRATIONS=./migrations/*.ts
             cd .circleci/ansible
             
-            cd .ssh
-            eval `ssh-agent`
-            chmod 400 keyp3.pem
-            ssh-add keyp3.pem 
-            cd ..     
+            # cd .ssh
+            # eval `ssh-agent`
+            # chmod 400 keyp3.pem
+            # ssh-add keyp3.pem 
+            # cd ..     
 
             cat inventory.txt
             export ANSIBLE_HOST_KEY_CHECKING=False
