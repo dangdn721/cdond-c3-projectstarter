@@ -265,25 +265,33 @@ jobs:
             apk add nodejs
             apk add npm
             pip install awscli
-      - run: cat   .circleci/ansible/inventory.txt
+            cd backend
+            npm install
       - run:
-          name: Deploy
+          name: Package backend
           command: |
             cd backend
-            cat .env
-            npm i 
             npm run build
-            ls dist
-            tar -czvf dist.tar.gz dist
-            mkdir -p ~/project/.circleci/ansible/roles/deploy/files/
-            mv dist.tar.gz  ~/project/.circleci/ansible/roles/deploy/files/
-            cp -f ~/project/backend/package.json  ~/project/.circleci/ansible/roles/deploy/files/
+            tar -czf artifact.tar.gz dist/* package*
+            cd ..
+            cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
       - run:
           name: Deploy backend
           command: |
-            ls ~/project/.circleci/ansible/roles/deploy/files/
+            export TYPEORM_MIGRATIONS_DIR=./migrations
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
+            export TYPEORM_MIGRATIONS=./migrations/*.ts
             cd .circleci/ansible
-            ansible-playbook -i inventory.txt deploy-backend.yml
+            
+            cd .ssh
+            eval `ssh-agent`
+            chmod 400 keyp3.pem
+            ssh-add keyp3.pem 
+            cd ..     
+
+            cat inventory.txt
+            export ANSIBLE_HOST_KEY_CHECKING=False
+            ansible-playbook -i inventory.txt deploy-backend.yml  
       - destroy-environment
       - revert-migrations
 
