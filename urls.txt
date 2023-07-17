@@ -1,5 +1,5 @@
 URL01 = https://github.com/dangdn721/cdond-c3-projectstarter
-URL02 = http://udapeople-b6c3210.s3-website-us-east-1.amazonaws.com/
+URL02 = http://udapeople-5a1e9de.s3-website-us-east-1.amazonaws.com/
 URL03 = 
 URL04_1 = 
 URL04_2 = 
